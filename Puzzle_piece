@@ -1,0 +1,40 @@
+package puzzle_igrica;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import javax.swing.JComponent;
+
+public class Puzzle_piece extends JComponent {
+	
+	private static final long serialVersionUID = 1L;
+	private int color;
+	private boolean matrix[][];
+	private Color colorPiece[] = { Color.red, Color.yellow, Color.pink, Color.magenta, Color.green, Color.cyan, Color.gray, Color.orange };
+	
+	
+	public Puzzle_piece(boolean matrix[][], int color) {
+		this.matrix = matrix;
+		this.color = color;
+		setSize(151, 151);
+	}
+	
+	public void paintComponent(Graphics g) {
+		super.paintComponent(g);
+		int x = 0, y = 0;
+		
+		for(int i=0; i<5; i++){
+			for(int j=0; j<5; j++){
+				if(matrix[i][j]==true){
+					g.setColor(colorPiece[color]);
+					g.fillRect(x, y, 30, 30);
+					g.setColor(Color.black);
+					g.drawRect(x, y, 30, 30);
+					
+				}
+				x+=30;
+			}
+			x=0;
+			y+=30;
+		}
+	}
+}
