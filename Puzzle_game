@@ -1,0 +1,382 @@
+package puzzle_igrica;
+
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.SwingUtilities;
+
+public class Puzzle_game extends JFrame {
+	
+	private static final long serialVersionUID = 1L;
+	private boolean copyOfPiece[][] = new boolean[5][5];
+	private boolean changeBoard[][] = new boolean[5][5];
+	private Puzzle_board board;
+	private Puzzle_piece piece[] = new Puzzle_piece[8];
+	private Rectangle area = new Rectangle(3, 48, 596, 552);
+	private int startX, startY, newX, newY, relX, relY, releasedX, releasedY, pressedX, pressedY;
+	private int numberOfPiece;
+	private int endOfGame = 0;
+	private boolean piecePassed = false;
+	private int pieceLocation[][] = {
+			{90, 0}, {230, 0}, {340, 0}, {420, 0}, {90, 400}, {200, 420}, {340, 390}, {445, 400}
+	};
+	private int pieceSize[][] = {
+			{90, 60}, {60, 60}, {30, 60}, {60, 30}, {30, 90}, {60, 30}, {30, 150}, {30, 90}
+	};
+	private boolean boardMatrix[][] = {
+			{false, false, false, false, false},
+			{false, false, false, false, false},
+			{false, false, false, false, false},
+			{false, false, false, false, false},
+			{false, false, false, false, false}	
+	};
+	private boolean matrix[][][] = {
+			{{false, false, false, false, false},
+			{false, true, true, true, false},
+			{false, true, false, false, false},
+			{false, false, false, false, false},
+			{false, false, false, false, false}},
+			
+			{{false, false, false, false, false},
+			{false, true, true, false, false},
+			{false, true, true, false, false},
+			{false, false, false, false, false},
+			{false, false, false, false, false}},
+			
+			{{false, false, false, false, false},
+			{false, true, false, false, false},
+			{false, true, false, false, false},
+			{false, false, false, false, false},
+			{false, false, false, false, false}},
+			
+			{{false, false, false, false, false},
+			{false, true, true, false, false},
+			{false, false, false, false, false},
+			{false, false, false, false, false},
+			{false, false, false, false, false}},
+			
+			{{false, false, false, false, false},
+			{false, true, false, false, false},
+			{false, true, false, false, false},
+			{false, true, false, false, false},
+			{false, false, false, false, false}},
+			
+			{{false, false, false, false, false},
+			{false, true, true, false, false},
+			{false, false, false, false, false},
+			{false, false, false, false, false},
+			{false, false, false, false, false}},
+			
+			{{false, true, false, false, false},
+			{false, true, false, false, false},
+			{false, true, false, false, false},
+			{false, true, false, false, false},
+			{false, true, false, false, false}},
+			
+			{{false, false, false, false, false},
+			{false, true, false, false, false},
+			{false, true, false, false, false},
+			{false, true, false, false, false},
+			{false, false, false, false, false}},
+	};
+	
+	// podrazumevani konstruktor
+	public Puzzle_game() {
+		setTitle("Puzzle game");
+		setSize(600, 600);
+		setLocationRelativeTo(null);
+		setResizable(false);
+		setLayout(null);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
+		JMenuBar mb = new JMenuBar();
+        	JMenu menu = new JMenu("File");
+        	mb.add(menu);
+        	JMenuItem newGame = new JMenuItem("New game");
+        	menu.add(newGame);
+        	JMenuItem exit = new JMenuItem("Exit");
+        	menu.add(exit);
+        	setJMenuBar(mb);
+        	setVisible(true);
+		
+		addMouseMotionListener(new MyMouseAdapter());
+        	addMouseListener(new MyMouseAdapter());
+        
+        	board = new Puzzle_board();
+        	board.setLocation(222, 176);
+        	add(board);
+
+		for(int i=0; i<8; i++){
+			piece[i] = new Puzzle_piece(matrix[i], i);
+			piece[i].setLocation(pieceLocation[i][0], pieceLocation[i][1]);
+			add(piece[i]);
+		}
+		
+		
+		newGame.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				for(int i=0; i<8; i++){
+					piece[i].setLocation(pieceLocation[i][0], pieceLocation[i][1]);
+					add(piece[i]);
+				}
+				
+				for(int i=0; i<5; i++) {
+					for(int j=0; j<5; j++) {
+						boardMatrix[i][j]=false;
+					}
+				}
+				endOfGame = 0;
+				newX = 0;
+				newY = 0;
+			}
+		});
+		
+		exit.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				System.exit(0);
+			}
+		});	
+	}
+	
+	// kostruktor za congratulations message
+	public Puzzle_game(String s) {
+		setTitle(s);
+		setSize(250, 150);
+		setLocationRelativeTo(null);
+		setResizable(false);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setVisible(true);
+		
+		JLabel label = new JLabel("Congratulations you passed the puzzle!!!", JLabel.CENTER);
+		label.setAlignmentX(0);
+		label.setAlignmentY(0);
+		
+		add(label);	
+	}
+	
+		
+	private class MyMouseAdapter extends MouseAdapter {		
+		@Override
+	    public void mousePressed(MouseEvent e) {
+	        numberOfPiece = findPuzzlePiece(e.getX(), e.getY());
+
+	        if(numberOfPiece<0) {
+	        
+	        }
+	        else {
+	        	add(piece[numberOfPiece]);
+		        for(int i=0; i<8; i++) {
+		        	if(numberOfPiece==i) {
+		        		continue;
+		        	}
+		        	add(piece[i]);
+		        }
+	        	
+	        	startX = e.getX();
+	        	startY = e.getY();
+	        	
+	        	pressedX = e.getX();
+	        	pressedY = e.getY();
+	        }
+	    }
+	
+	    @Override
+	    public void mouseDragged(MouseEvent e) {
+	    	if(numberOfPiece<0 || SwingUtilities.isRightMouseButton(e) || SwingUtilities.isMiddleMouseButton(e)) {
+				
+	    	}
+	    	else {
+	    		newX = pieceLocation[numberOfPiece][0]-(startX-e.getX());
+	    		newY = pieceLocation[numberOfPiece][1]-(startY-e.getY());
+
+	    		if(numberOfPiece==6) {
+		        	newX +=30;
+		        }
+		        else {
+		        	newX +=30;
+			        newY +=30;
+		        }
+	    		
+	    		piece[numberOfPiece].setLocation(newX, newY);
+	    		checkArea();
+	    	}
+	    }
+	
+	    @Override
+	    public void mouseReleased(MouseEvent e) {
+	    	relX = e.getX();
+	    	relY = e.getY();
+	    	
+	    	releasedX = e.getX();
+			releasedY = e.getY();
+	    	
+	    	if(numberOfPiece>-1) {
+	    		if(newX==0 && newY==0) {
+	    			
+	    		}
+	    		else {
+	    			if(checkBoard(relX, relY, startX, startY)) {
+	    				endOfGame++;
+	    				
+	    				for(int i=0; i<5; i++) {
+	    					for(int j=0; j<5; j++) {
+	    						if(changeBoard[i][j]==true) {
+	    							boardMatrix[i][j]=changeBoard[i][j];
+	    						}
+	    					}
+	    				}
+	    				
+	    				relX = relX - (((pressedX - (pieceLocation[numberOfPiece][0]+3))/30)*30);
+	    				relX = (relX - ((relX-195)%30))-3;
+	    				relY = relY - (((pressedY - (pieceLocation[numberOfPiece][1]+48))/30)*30);
+	   					relY = (relY - ((relY-194)%30))-48;
+	    				piece[numberOfPiece].setLocation(relX, relY);
+	    				
+	    				if(endOfGame==8) {
+	    					new Puzzle_game("Congratulations");
+	    				}
+	    			}
+	    			else {
+	    				piece[numberOfPiece].setLocation(pieceLocation[numberOfPiece][0], pieceLocation[numberOfPiece][1]);
+	    			}
+	    			
+				    repaint();
+				    newX=0;
+				    newY=0;
+	    		}
+	    	}	
+	    }	
+	}
+		// proveravamo na koji objekat (piece) je kliknuto
+		public int findPuzzlePiece(int x, int y) {
+			if((x>pieceLocation[0][0]+33 && x<pieceLocation[0][0]+63 && y>pieceLocation[0][1]+78 && y<pieceLocation[0][1]+138) 
+					|| (x>pieceLocation[0][0]+63 && x<pieceLocation[0][0]+123 && y>pieceLocation[0][1]+78 && y<pieceLocation[0][1]+108)) {
+				return 0;
+			}
+			if(x>pieceLocation[1][0]+33 && x<pieceLocation[1][0]+93 && y>pieceLocation[1][1]+78 && y<pieceLocation[1][1]+138) {
+				return 1;
+			}
+			if(x>pieceLocation[2][0]+33 && x<pieceLocation[2][0]+63 && y>pieceLocation[2][1]+78 && y<pieceLocation[2][1]+138) {
+				return 2;
+			}
+			if(x>pieceLocation[3][0]+33 && x<pieceLocation[3][0]+93 && y>pieceLocation[3][1]+78 && y<pieceLocation[3][1]+108) {
+				return 3;
+			}
+			if(x>pieceLocation[4][0]+33 && x<pieceLocation[4][0]+63 && y>pieceLocation[4][1]+78 && y<pieceLocation[4][1]+168) {
+				return 4;
+			}
+			if(x>pieceLocation[5][0]+33 && x<pieceLocation[5][0]+93 && y>pieceLocation[5][1]+78 && y<pieceLocation[5][1]+108) {
+				return 5;
+			}
+			if(x>pieceLocation[6][0]+33 && x<pieceLocation[6][0]+63 && y>pieceLocation[6][1]+48 && y<pieceLocation[6][1]+198) {
+				return 6;
+			}
+			if(x>pieceLocation[7][0]+33 && x<pieceLocation[7][0]+63 && y>pieceLocation[7][1]+78 && y<pieceLocation[7][1]+168) {
+				return 7;
+			}
+			return -1;
+		}
+		
+		public boolean checkBoard(int x, int y, int startX, int startY) {
+			
+			for(int i=0; i<5; i++) {
+				for(int j=0; j<5; j++) {
+					copyOfPiece[i][j] = matrix[numberOfPiece][i][j];
+					changeBoard[i][j] = false;
+				}
+			}
+			
+			int i=0;
+		
+			while(i!=5) {
+				if(board.contains(x, y)) {
+					int k = (x-225)/30;
+					int l = (y-224)/30;
+
+					// deo objekta moze da se postavi na toj koordinati u mrezi
+					// proveravamo za ostale delove istog objekta
+					if(boardMatrix[l][k]==false) {
+						changeBoard[l][k]=true;
+						
+						k = (startX-(pieceLocation[numberOfPiece][0]+3))/30;
+						l = (startY-(pieceLocation[numberOfPiece][1]+48))/30;
+						copyOfPiece[l][k]=false;
+						k = (pressedX-(pieceLocation[numberOfPiece][0]+3))/30;
+						l = (pressedY-(pieceLocation[numberOfPiece][1]+48))/30;
+						
+						for(i=0; i<5; i++) {
+							for(int j=0; j<5; j++) {
+								if(copyOfPiece[i][j]==true) {
+									startX = pressedX + ((j-k)*30);
+									startY = pressedY + ((i-l)*30);
+									x = releasedX + ((j-k)*30);
+									y = releasedY + ((i-l)*30);
+									piecePassed = true;
+									break;
+								}
+								else {
+									piecePassed = false;
+								}
+							}
+							if(piecePassed) {
+								break;
+							}
+						}
+					}
+					// deo objekta ne moze da se postavi na toj koordinati u mrezi
+					else {
+						break;
+					}
+				}
+				// objekat je otpusten van mreze
+				else {
+					break;
+				}	
+			}
+			// ceo objekat moze da se postavi u mrezu
+			if(i==5){
+				return true;
+			}
+			return false;
+		}
+		
+		void checkArea() {
+			if ((newX + pieceSize[numberOfPiece][0]) > area.getWidth()) {
+	            newX = (int) area.getWidth() - (int) (pieceSize[numberOfPiece][0]-1);
+	        }
+	        if (newX < 0) {
+	            newX = -1;
+	        }
+	        if ((newY + pieceSize[numberOfPiece][1]) > area.getHeight()) {
+	            newY = (int) area.getHeight() - (int) (pieceSize[numberOfPiece][1]-1);
+	        }
+	        if (newY < 0) {
+	            newY = -1;
+	        }
+	        
+	        if(numberOfPiece==6) {
+	        	newX -=30;
+	        }
+	        else {
+	        	newX -=30;
+		        newY -=30;
+	        }
+	        piece[numberOfPiece].setLocation(newX, newY);	
+		}
+	
+	
+	public static void main(String args[]) {
+		new Puzzle_game();
+	}
+
+}
